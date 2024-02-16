@@ -1,15 +1,27 @@
-import { create } from ".utils/index.js";
+import { create } from "./utils";
 import React from "react";
-import ReactDOM from "react-dom";
-// 创建状态管理实例
-const myStore = create((setState, getState) => {
-  return {
-    count: 0,
-    increment: () => setState((prevState) => ({ count: prevState.count + 1 })),
-    decrement: () => setState((prevState) => ({ count: prevState.count - 1 })),
-    reset: () => setState({ count: 0 }),
+function logMiddleware(func) {
+  return function (set, get, store) {
+    function newSet(...args) {
+      console.log("调用了set:", get());
+      return set(...args);
+    }
+    return func(newSet, get, store);
   };
-});
+}
+// 创建状态管理实例
+const myStore = create(
+  logMiddleware((setState, getState) => {
+    return {
+      count: 0,
+      increment: () =>
+        setState((prevState) => ({ count: prevState.count + 1 })),
+      decrement: () =>
+        setState((prevState) => ({ count: prevState.count - 1 })),
+      reset: () => setState({ count: 0 }),
+    };
+  })
+);
 
 // 在组件中使用状态管理实例
 function Counter() {
@@ -27,7 +39,5 @@ function Counter() {
     </div>
   );
 }
-
-
 
 export default Counter;
